@@ -42,6 +42,16 @@ Btw if you're looking for a Markdown renderer library for avalonia, you can chec
 
 <br/>
 
+## 📱 Mobile Support
+
+SukiUI is exclusively desktop focused.
+
+If you like the SukiUI theme and want to develop for Mobile, check the [CherylUI Library](https://github.com/kikipoulet/CherylUI.Uno), which is basically Suki theme for Mobile.
+
+
+<br/>
+
+## 🎨 UI Theme 
 
 
 ## 🎨 UI Theme 
