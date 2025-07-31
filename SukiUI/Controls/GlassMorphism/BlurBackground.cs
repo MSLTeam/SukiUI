@@ -13,23 +13,6 @@ namespace SukiUI.Controls.GlassMorphism;
 
 public class BlurBackground : Control
 {
-    public static readonly StyledProperty<bool> IsDynamicProperty = AvaloniaProperty.Register<BlurBackground, bool>(
-        nameof(IsDynamic), defaultValue: false);
-
-    public bool IsDynamic
-    {
-        get => GetValue(IsDynamicProperty);
-        set => SetValue(IsDynamicProperty, value);
-    }
-    
-    public static readonly StyledProperty<double> IntensityFactorProperty =
-        AvaloniaProperty.Register<BlurBackground, double>(nameof(IntensityFactor), 1d);
-    
-    public double IntensityFactor
-    {
-        get => GetValue(IntensityFactorProperty);
-        set => SetValue(IntensityFactorProperty, value);
-    }
     
     public override void BeginInit()
     {
@@ -39,7 +22,6 @@ public class BlurBackground : Control
     }
 
     private bool darkmode = false;
-
 
     private SKImage? _cachedBackground = null;
     
@@ -70,23 +52,13 @@ half4 main(float2 coord) {
   
         private readonly Rect _bounds;
         private SKImage? _cachedBackground;
-        private BlurBackground _blurBackgroundControl;
-        private bool IsDynamic = false;
-        private double BlurFactor = 1;
         
-        
-        public BlurBehindRenderOperation(BlurBackground blurcontrol, Rect bounds, ref SKImage? cachedBackground, bool IsDark)
+        public BlurBehindRenderOperation( Rect bounds, ref SKImage? cachedBackground, bool IsDark)
         {
-            _blurBackgroundControl = blurcontrol;
+      
             _bounds = bounds;
             _cachedBackground = cachedBackground;
-
-            var themeInstance = SukiTheme.GetInstance();
-            IsDarkTheme = themeInstance.ActiveBaseTheme == ThemeVariant.Dark;
-            themeInstance.OnBaseThemeChanged += variant => IsDarkTheme = variant == ThemeVariant.Dark;
-            
-            IsDynamic = blurcontrol.IsDynamic;
-            BlurFactor = blurcontrol.IntensityFactor;
+            IsDarkTheme = IsDark;
         }
 
         public void Dispose()
@@ -106,92 +78,70 @@ half4 main(float2 coord) {
                 if (!canvas.TotalMatrix.TryInvert(out var currentInvertedTransform))
                     return;
 
+            if (_cachedBackground == null)  
+                _cachedBackground = lease.SkSurface.Snapshot();
 
-                if (IsDynamic)
-                {
-                    _cachedBackground?.Dispose();
-                    _cachedBackground = lease.SkSurface.Snapshot();
-                }
-                else
-                {
-                    if (_cachedBackground == null)
-                        _cachedBackground = lease.SkSurface.Snapshot();
-                }
-                
+            using var backdropShader = SKShader.CreateImage(_cachedBackground, SKShaderTileMode.Clamp, SKShaderTileMode.Clamp, currentInvertedTransform);
 
-
-                if(_cachedBackground == null)
-                    return;
+            using var blurred = SKSurface.Create(lease.GrContext, false, new SKImageInfo((int)Math.Ceiling(_bounds.Width), (int)Math.Ceiling(_bounds.Height), SKImageInfo.PlatformColorType, SKAlphaType.Premul));
+    
+            var sigma =( _bounds.Width + _bounds.Height)/42;
+            if(sigma <20)
+                sigma = 20;
             
-                using var backdropShader = SKShader.CreateImage(_cachedBackground, SKShaderTileMode.Clamp,
-                    SKShaderTileMode.Clamp, currentInvertedTransform);
+            using (var filter = SKImageFilter.CreateBlur((float)sigma, (float)sigma))
+            using (var blurPaint = new SKPaint
+            {
+                Shader = backdropShader ,
+                ImageFilter = filter
+            }) 
+            blurred.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
 
-                using var blurred = SKSurface.Create(lease.GrContext, false,
-                    new SKImageInfo((int)Math.Ceiling(_bounds.Width), (int)Math.Ceiling(_bounds.Height),
-                        SKImageInfo.PlatformColorType, SKAlphaType.Premul));
+            using (var blurSnap = blurred.Snapshot())
+                
+            using (var blurSnapShader = SKShader.CreateImage(blurSnap))
+            {
+                var effect = SKRuntimeEffect.CreateShader(clampLumaSkSL, out var error);
+                if (effect == null) 
+                    throw new Exception($"SKRuntimeEffect error: {error}");
 
-                var sigma = IsDarkTheme ? (_bounds.Width + _bounds.Height) / 42 : 50;
+                float minLuma = IsDarkTheme ? 0f : 0.8f;
+                float maxLuma = IsDarkTheme ? 0.12f : 1f; 
 
-                if (sigma < 20)
-                    sigma = 20;
-
-               sigma = sigma *  BlurFactor;
-
-                using (var filter = SKImageFilter.CreateBlur((float)sigma, (float)sigma))
-                using (var blurPaint = new SKPaint
-                       {
-                           Shader = backdropShader,
-                           ImageFilter = filter
-                       })
-                    blurred.Canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, blurPaint);
-
-  
-                using (var blurSnap = blurred.Snapshot())
-                    
-                using (var blurSnapShader = SKShader.CreateImage(blurSnap))
+                var uniforms = new SKRuntimeEffectUniforms(effect)
                 {
-                    var effect = SKRuntimeEffect.CreateShader(clampLumaSkSL, out var error);
-                    if (effect == null)
-                        throw new Exception($"SKRuntimeEffect error: {error}");
+                    ["minLuma"] = minLuma,
+                    ["maxLuma"] = maxLuma
+                };
+                
+                var children = new SKRuntimeEffectChildren(effect)
+                {
+                    ["src"] = blurSnapShader
+                };
+                using var clampShader = effect.ToShader(uniforms, children, SKMatrix.CreateIdentity());
 
-                    float minLuma = IsDarkTheme ? 0f : 0.8f;
-                    float maxLuma = IsDarkTheme ? 0.12f : 1f;
+                using var paint = new SKPaint
+                {
+                    Shader = clampShader,
+                    IsAntialias = false
+                };
 
-                    var uniforms = new SKRuntimeEffectUniforms(effect)
-                    {
-                        ["minLuma"] = minLuma,
-                        ["maxLuma"] = maxLuma
-                    };
-
-                    var children = new SKRuntimeEffectChildren(effect)
-                    {
-                        ["src"] = blurSnapShader
-                    };
-                    using var clampShader = effect.ToShader(uniforms, children, SKMatrix.CreateIdentity());
-
-                    using var paint = new SKPaint
-                    {
-                        Shader = clampShader,
-                        IsAntialias = false
-                    };
-
-                    canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, paint);
-                }
-         
+                canvas.DrawRect(0, 0, (float)_bounds.Width, (float)_bounds.Height, paint);
+            }
+   
         }
        
         public Rect Bounds => _bounds.Inflate(4);
 
         public bool Equals(ICustomDrawOperation? other)
         {
-            return other is BlurBehindRenderOperation op && op._bounds == _bounds 
-                ;
+            return other is BlurBehindRenderOperation op && op._bounds == _bounds ;
         }
     }
 
     public override void Render(DrawingContext context)
     {
        
-        context.Custom(new BlurBehindRenderOperation(this, new Rect(default, Bounds.Size), ref _cachedBackground, darkmode));
+        context.Custom(new BlurBehindRenderOperation( new Rect(default, Bounds.Size), ref _cachedBackground, darkmode));
     }
 }
