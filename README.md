@@ -46,9 +46,6 @@ Btw if you're looking for a Markdown renderer library for avalonia, you can chec
 
 ## 🎨 UI Theme 
 
-
-## 🎨 UI Theme 
-
 <br/>
 
 ### SukiUI is a theme for AvaloniaUI with support for Light/Dark themes, and different color themes.
@@ -67,6 +64,7 @@ Btw if you're looking for a Markdown renderer library for avalonia, you can chec
 ![Sukibackgrounds](https://github.com/user-attachments/assets/8a46e07e-2ee2-4052-9e03-d1d1e4d598f7)
 
 
+
 <br/>
 
 ## 🕹 Richly Animated Controls
@@ -77,6 +75,8 @@ Btw if you're looking for a Markdown renderer library for avalonia, you can chec
 
 <br/>
 
+
+![progress](https://github.com/user-attachments/assets/af4e59ef-a31b-49cc-a4c4-1923959dc284)
 
 ![progress](https://github.com/user-attachments/assets/af4e59ef-a31b-49cc-a4c4-1923959dc284)
 
@@ -95,6 +95,7 @@ SukiUI offer a versatile way to display unique toasts, to help you create nice i
 
 
 ![Toasts](https://github.com/user-attachments/assets/b0b4c0b4-1318-4eaf-bada-45adeb02327f)
+
 
 
 <br/>
