@@ -35,10 +35,10 @@
                     </Panel>
                     <Border Name="PART_Border"
                             MinWidth="85"
-                            Margin="15,2"
-                            Padding="30,15,15,15"
+                            Margin="15,5"
+                            Padding="30,10,15,10"
                             Background="{DynamicResource SukiPrimaryColor0}"
-                            CornerRadius="{DynamicResource MediumCornerRadius}">
+                            CornerRadius="12">
 
                         <Border.Transitions>
                             <Transitions>
@@ -129,9 +129,10 @@
             <Setter Property="IsVisible" Value="False" />
         </Style>
 
-        <Style Selector="^.Compact /template/ Border#PART_Border">
-            <Setter Property="Padding" Value="30,10,15,10" />
-            <Setter Property="CornerRadius" Value="12" />
+        <Style Selector="^.Dispersed /template/ Border#PART_Border">
+            <Setter Property="Padding" Value="30,15,15,15" />
+            <Setter Property="Margin" Value="15,2" />
+            <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}" />
         </Style>
         <Style Selector="^:pointerover">
             <Style Selector="^ /template/ Border#PART_Border">
