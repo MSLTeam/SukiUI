@@ -64,14 +64,23 @@
                             Classes="Success"
                             Content="Success" />
                     <Button Margin="5"
+                            Classes="Flat Success"
+                            Content="Flat Success" />
+                    <Button Margin="5"
                             Classes="Information"
                             Content="Information" />
                     <Button Margin="5"
                             Classes="Warning"
                             Content="Warning" />
                     <Button Margin="5"
+                            Classes="Flat Warning"
+                            Content="Flat Warning" />
+                    <Button Margin="5"
                             Classes="Danger"
                             Content="Danger" />
+                    <Button Margin="5"
+                            Classes="Flat Danger"
+                            Content="Flat Danger" />
                     <Button Margin="5"
                             VerticalAlignment="Top"
                             Classes="Small"
@@ -306,6 +315,66 @@
             </Style>
         </Style>
 
+        <Style Selector="^.Success">
+            <Style Selector="^:pointerover, ^:flyout-open">
+                <Setter Property="Foreground" Value="{DynamicResource SukiSuccessColor}" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiSuccessColor}" />
+                </Style>
+            </Style>
+            <Style Selector="^:pressed:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource SukiSuccessColor}" />
+                <Setter Property="RenderTransform" Value="scale(0.97)" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiSuccessColor}" />
+                </Style>
+                <Style Selector="^.Icon /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiSuccessColor}" />
+                    <Setter Property="RenderTransform" Value="scale(0.95)" />
+                </Style>
+            </Style>
+        </Style>
+
+        <Style Selector="^.Warning">
+            <Style Selector="^:pointerover, ^:flyout-open">
+                <Setter Property="Foreground" Value="{DynamicResource SukiWarningColor}" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiWarningColor}" />
+                </Style>
+            </Style>
+            <Style Selector="^:pressed:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource SukiWarningColor}" />
+                <Setter Property="RenderTransform" Value="scale(0.97)" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiWarningColor}" />
+                </Style>
+                <Style Selector="^.Icon /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiWarningColor}" />
+                    <Setter Property="RenderTransform" Value="scale(0.95)" />
+                </Style>
+            </Style>
+        </Style>
+
+        <Style Selector="^.Danger">
+            <Style Selector="^:pointerover, ^:flyout-open">
+                <Setter Property="Foreground" Value="{DynamicResource SukiDangerColor}" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiDangerColor}" />
+                </Style>
+            </Style>
+            <Style Selector="^:pressed:pointerover">
+                <Setter Property="Foreground" Value="{DynamicResource SukiDangerColor}" />
+                <Setter Property="RenderTransform" Value="scale(0.97)" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiDangerColor}" />
+                </Style>
+                <Style Selector="^.Icon /template/ Border">
+                    <Setter Property="BorderBrush" Value="{DynamicResource SukiDangerColor}" />
+                    <Setter Property="RenderTransform" Value="scale(0.95)" />
+                </Style>
+            </Style>
+        </Style>
+
         <Style Selector="^.Basic">
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="BorderBrush" Value="Transparent" />
@@ -370,7 +439,54 @@
                 <Style Selector="^:pressed:pointerover">
                     <Setter Property="Background" Value="{DynamicResource SukiAccentColor75}" />
                 </Style>
+            </Style>
 
+            <Style Selector="^.Success">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="{DynamicResource SukiSuccessColor}" />
+                <Setter Property="Foreground" Value="White" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BoxShadow" Value="{DynamicResource SukiLowShadow}" />
+                </Style>
+                <!--  Events  -->
+                <Style Selector="^:pointerover, ^:flyout-open">
+                    <Setter Property="Background" Value="{DynamicResource SukiSuccessMediumColor}" />
+                </Style>
+                <Style Selector="^:pressed">
+                    <Setter Property="Background" Value="{DynamicResource SukiSuccessDarkColor}" />
+                </Style>
+            </Style>
+
+            <Style Selector="^.Warning">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="{DynamicResource SukiWarningColor}" />
+                <Setter Property="Foreground" Value="{DynamicResource SukiWarningForeground}" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BoxShadow" Value="{DynamicResource SukiLowShadow}" />
+                </Style>
+                <!--  Events  -->
+                <Style Selector="^:pointerover, ^:flyout-open">
+                    <Setter Property="Background" Value="{DynamicResource SukiWarningMediumColor}" />
+                </Style>
+                <Style Selector="^:pressed:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource SukiWarningDarkColor}" />
+                </Style>
+            </Style>
+
+            <Style Selector="^.Danger">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="Background" Value="{DynamicResource SukiDangerColor}" />
+                <Setter Property="Foreground" Value="{DynamicResource SukiDangerForeground}" />
+                <Style Selector="^ /template/ Border">
+                    <Setter Property="BoxShadow" Value="{DynamicResource SukiLowShadow}" />
+                </Style>
+                <!--  Events  -->
+                <Style Selector="^:pointerover, ^:flyout-open">
+                    <Setter Property="Background" Value="{DynamicResource SukiDangerMediumColor}" />
+                </Style>
+                <Style Selector="^:pressed:pointerover">
+                    <Setter Property="Background" Value="{DynamicResource SukiDangerDarkColor}" />
+                </Style>
             </Style>
         </Style>
 
@@ -404,22 +520,6 @@
             </Style>
         </Style>
 
-        <Style Selector="^.Success">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="{DynamicResource SukiSuccessColor}" />
-            <Setter Property="Foreground" Value="{DynamicResource SukiSuccessForeground}" />
-            <Style Selector="^ /template/ Border">
-                <Setter Property="BoxShadow" Value="{DynamicResource SukiLowShadow}" />
-            </Style>
-            <!--  Events  -->
-            <Style Selector="^:pointerover, ^:flyout-open">
-                <Setter Property="Background" Value="{DynamicResource SukiSuccessMediumColor}" />
-            </Style>
-            <Style Selector="^:pressed">
-                <Setter Property="Background" Value="{DynamicResource SukiSuccessDarkColor}" />
-            </Style>
-        </Style>
-
         <Style Selector="^.Information">
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Background" Value="{DynamicResource SukiInformationColor}" />
@@ -433,38 +533,6 @@
             </Style>
             <Style Selector="^:pressed:pointerover">
                 <Setter Property="Background" Value="{DynamicResource SukiInformationDarkColor}" />
-            </Style>
-        </Style>
-
-        <Style Selector="^.Warning">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="{DynamicResource SukiWarningColor}" />
-            <Setter Property="Foreground" Value="{DynamicResource SukiWarningForeground}" />
-            <Style Selector="^ /template/ Border">
-                <Setter Property="BoxShadow" Value="{DynamicResource SukiLowShadow}" />
-            </Style>
-            <!--  Events  -->
-            <Style Selector="^:pointerover, ^:flyout-open">
-                <Setter Property="Background" Value="{DynamicResource SukiWarningMediumColor}" />
-            </Style>
-            <Style Selector="^:pressed:pointerover">
-                <Setter Property="Background" Value="{DynamicResource SukiWarningDarkColor}" />
-            </Style>
-        </Style>
-
-        <Style Selector="^.Danger">
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="{DynamicResource SukiDangerColor}" />
-            <Setter Property="Foreground" Value="{DynamicResource SukiDangerForeground}" />
-            <Style Selector="^ /template/ Border">
-                <Setter Property="BoxShadow" Value="{DynamicResource SukiLowShadow}" />
-            </Style>
-            <!--  Events  -->
-            <Style Selector="^:pointerover, ^:flyout-open">
-                <Setter Property="Background" Value="{DynamicResource SukiDangerMediumColor}" />
-            </Style>
-            <Style Selector="^:pressed:pointerover">
-                <Setter Property="Background" Value="{DynamicResource SukiDangerDarkColor}" />
             </Style>
         </Style>
 
