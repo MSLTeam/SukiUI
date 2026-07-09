@@ -9,7 +9,7 @@
             <ControlTemplate>
                 <Panel>
                     <Border Padding="0" 
-                            Margin="0,55,0,0"
+                            Margin="55"
                             ClipToBounds="True" 
                             MinWidth="450"
                             CornerRadius="25">
