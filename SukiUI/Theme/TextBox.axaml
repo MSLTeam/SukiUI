@@ -20,13 +20,13 @@
 
                     <TextBox IsEnabled="False"
                              Text="Disabled text"
-                             Watermark="TextBox" />
+                             PlaceholderText="TextBox" />
 
                     <TextBox suki:TextBoxExtensions.AddDeleteButton="True"
                              BorderBrush="Red"
                              BorderThickness="10"
                              Text="Thick border"
-                             UseFloatingWatermark="True" />
+                             UseFloatingPlaceholder="True" />
 
                     <TextBox suki:TextBoxExtensions.AddDeleteButton="True" Text="Error validation">
                         <DataValidationErrors.Error>
@@ -39,15 +39,18 @@
                     </TextBox>
 
                     <TextBox suki:TextBoxExtensions.Prefix="https://"
-                             Text="test.com"
-                             UseFloatingWatermark="True"
-                             Watermark="Url" />
+                             suki:TextBoxExtensions.Unit=".com"
+                             suki:TextBoxExtensions.ResetText="google"
+                             suki:TextBoxExtensions.AddDeleteButton="True"
+                             Text="test"
+                             UseFloatingPlaceholder="True"
+                             PlaceholderText="Url" />
 
                     <TextBox InnerLeftContent="[L]"
                              InnerRightContent="[R]"
                              Text="InnerContent" />
 
-                    <TextBox Classes="NoShadow" Watermark="NoShadow" />
+                    <TextBox Classes="NoShadow" PlaceholderText="NoShadow" />
 
                     <NumericUpDown Value="1">
                         <DataValidationErrors.Error>
@@ -171,7 +174,7 @@
 
     <system:Double x:Key="SukiTextBoxElementSpacing">5</system:Double>
     <suki:StringToDoubleConverter x:Key="StringToDoubleC" />
-    <converters:MarginMultiplierConverter x:Key="FloatingWatermarkPaddingMultiplier"
+    <converters:MarginMultiplierConverter x:Key="FloatingPlaceholderPaddingMultiplier"
                                           Bottom="True"
                                           Indent="1"
                                           Left="False"
@@ -237,7 +240,7 @@
         <Setter Property="ContextFlyout" Value="{StaticResource DefaultTextBoxContextFlyout}" />
         <Setter Property="Template">
             <ControlTemplate>
-                <suki:GlassCard Name="PART_GlassBorder" 
+                <suki:GlassCard Name="PART_GlassBorder"
                                 Padding="{TemplateBinding Padding}"
                                 Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
@@ -252,14 +255,14 @@
                                LastChildFill="True"
                                VerticalSpacing="3">
 
-                        <TextBlock Name="PART_FloatingWatermark"
+                        <TextBlock Name="PART_FloatingPlaceholder"
                                    DockPanel.Dock="Top"
                                    Foreground="{DynamicResource SukiPrimaryColor120}"
-                                   Text="{TemplateBinding Watermark}">
+                                   Text="{TemplateBinding PlaceholderText}">
                             <TextBox.IsVisible>
                                 <MultiBinding Converter="{x:Static BoolConverters.And}">
-                                    <TemplateBinding Converter="{x:Static StringConverters.IsNotNullOrEmpty}" Property="Watermark" />
-                                    <TemplateBinding Property="UseFloatingWatermark" />
+                                    <TemplateBinding Converter="{x:Static StringConverters.IsNotNullOrEmpty}" Property="PlaceholderText" />
+                                    <TemplateBinding Property="UseFloatingPlaceholder" />
                                 </MultiBinding>
                             </TextBox.IsVisible>
                         </TextBlock>
@@ -298,11 +301,11 @@
                                     </Style>
                                 </ScrollViewer.Styles>
                                 <Panel>
-                                    <TextBlock Name="PART_Watermark"
+                                    <TextBlock Name="PART_Placeholder"
                                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
                                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                                Opacity="0.5"
-                                               Text="{TemplateBinding Watermark}"
+                                               Text="{TemplateBinding PlaceholderText}"
                                                TextAlignment="{TemplateBinding TextAlignment}"
                                                TextWrapping="{TemplateBinding TextWrapping}">
                                         <TextBlock.IsVisible>
@@ -311,7 +314,7 @@
                                                          ElementName="PART_TextPresenter"
                                                          Path="PreeditText" />
                                                 <TemplateBinding Converter="{x:Static StringConverters.IsNullOrEmpty}" Property="Text" />
-                                                <TemplateBinding Converter="{x:Static BoolConverters.Not}" Property="UseFloatingWatermark" />
+                                                <TemplateBinding Converter="{x:Static BoolConverters.Not}" Property="UseFloatingPlaceholder" />
                                             </MultiBinding>
                                         </TextBlock.IsVisible>
                                     </TextBlock>
@@ -342,6 +345,8 @@
                                     <MultiBinding Converter="{x:Static BoolConverters.Or}">
                                         <TemplateBinding Property="suki:TextBoxExtensions.AddDeleteButton" />
                                         <TemplateBinding Converter="{x:Static ObjectConverters.IsNotNull}" Property="InnerRightContent" />
+                                        <TemplateBinding Converter="{x:Static ObjectConverters.IsNotNull}" Property="suki:TextBoxExtensions.ResetText" />
+                                        <TemplateBinding Converter="{x:Static ObjectConverters.IsNotNull}" Property="suki:TextBoxExtensions.Unit" />
                                         <TemplateBinding Property="DataValidationErrors.HasErrors" />
                                     </MultiBinding>
                                 </StackPanel.IsVisible>
@@ -349,19 +354,44 @@
                                                   Content="{TemplateBinding InnerRightContent}"
                                                   IsVisible="{TemplateBinding InnerRightContent, Converter={x:Static ObjectConverters.IsNotNull}}" />
 
-                                <suki:TextEraserButton VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                <suki:TextResetButton VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                                      Cursor="Hand"
+                                                      IsVisible="{TemplateBinding suki:TextBoxExtensions.ResetText, Converter={x:Static ObjectConverters.IsNotNull}}"
+                                                      DefaultText="{TemplateBinding suki:TextBoxExtensions.ResetText}"
+                                                      Text="{TemplateBinding Text, Mode=TwoWay}">
+                                    <ToolTip.Tip>
+                                        <MultiBinding StringFormat="{}{0}: {1}">
+                                            <DynamicResource ResourceKey="STRING_BUTTON_RESET_TO" />
+                                            <TemplateBinding Property="suki:TextBoxExtensions.ResetText" />
+                                        </MultiBinding>
+                                    </ToolTip.Tip>
+                                    <PathIcon Width="16"
+                                              Height="16"
+                                              Margin="0"
+                                              Data="{x:Static suki:Icons.RefreshCircle}"
+                                              Foreground="{DynamicResource SukiLowText}" />
+                                </suki:TextResetButton>
+
+                                <suki:TextResetButton VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
                                                        Cursor="Hand"
                                                        IsVisible="{TemplateBinding suki:TextBoxExtensions.AddDeleteButton}"
                                                        Opacity="{TemplateBinding Text, Converter={StaticResource StringToDoubleC}}"
-                                                       Text="{TemplateBinding , Mode=TwoWay}">
-                                    <suki:TextEraserButton.Transitions>
-                                        <Transitions>
-                                            <DoubleTransition Property="Opacity" Duration="0:0:0.35" />
-                                        </Transitions>
-                                    </suki:TextEraserButton.Transitions>
-                                </suki:TextEraserButton>
+                                                       Text="{TemplateBinding Text, Mode=TwoWay}"
+                                                       ToolTip.Tip="{DynamicResource STRING_BUTTON_CLEAR}">
+                                    <PathIcon Width="16"
+                                              Height="16"
+                                              Margin="0"
+                                              Data="{x:Static suki:Icons.CircleClose}"
+                                              Foreground="{DynamicResource SukiLowText}" />
+                                </suki:TextResetButton>
 
                                 <DataValidationErrors />
+
+                                <ContentPresenter VerticalAlignment="Center"
+                                                  Content="{TemplateBinding suki:TextBoxExtensions.Unit}"
+                                                  FontSize="{TemplateBinding FontSize}"
+                                                  Foreground="{DynamicResource SukiLowText}"
+                                                  IsVisible="{TemplateBinding suki:TextBoxExtensions.Unit, Converter={x:Static ObjectConverters.IsNotNull}}" />
                             </StackPanel>
                         </Grid>
                     </DockPanel>

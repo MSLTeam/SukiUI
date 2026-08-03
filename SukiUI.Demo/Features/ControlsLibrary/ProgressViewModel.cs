@@ -4,6 +4,7 @@ using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Material.Icons;
+using SukiUI.Controls;
 
 namespace SukiUI.Demo.Features.ControlsLibrary;
 
@@ -12,6 +13,17 @@ public partial class ProgressViewModel() : DemoPageBase("Progress", MaterialIcon
     public IEnumerable<string> Steps { get; } =
     [
         "First Step", "Second Step", "Third Step"
+    ];
+
+    public IEnumerable<VerticalStepItem> VerticalSteps { get; } =
+    [
+        new VerticalStepItem("Account Setup", "Create your account credentials"),
+        new VerticalStepItem("Profile Information", "Add your personal details"),
+        new VerticalStepItem("Preferences", "Configure your preferences, thi is a very long description to check how the layout behaves, lorem ipsum dolor sit amet, consectetur adipiscing elit. lorem ipsum dolor sit amet, consectetur adipiscing elit."),
+        new VerticalStepItem("Account Setup", "Create your account credentials"),
+        new VerticalStepItem("Profile Information", "Add your personal details"),
+        new VerticalStepItem("Preferences", "Configure your preferences, thi is a very long description to check how the layout behaves, lorem ipsum dolor sit amet, consectetur adipiscing elit. lorem ipsum dolor sit amet, consectetur adipiscing elit."),
+        new VerticalStepItem("Complete", "Review and confirm")
     ];
 
     [ObservableProperty] private int _stepIndex = 1;
@@ -24,7 +36,7 @@ public partial class ProgressViewModel() : DemoPageBase("Progress", MaterialIcon
     {
         switch (isIncrement)
         {
-            case true when StepIndex >= Steps.Count() - 1:
+            case true when StepIndex >= Steps.Count() * 3 :
             case false when StepIndex <= 0:
                 return;
             default:

@@ -104,8 +104,8 @@
 
                         <TextBox suki:TextBoxExtensions.AddDeleteButton="True"
                                  Text="{Binding TextBlockValue}"
-                                 UseFloatingWatermark="True"
-                                 Watermark="TextBlock content" />
+                                 UseFloatingPlaceholder="True"
+                                 PlaceholderText="TextBlock content" />
                     </StackPanel>
                 </suki:GroupBox>
             </suki:GlassCard>
@@ -186,8 +186,8 @@
 
                         <TextBox suki:TextBoxExtensions.AddDeleteButton="True"
                                  Text="{Binding SelectableTextBlockValue}"
-                                 UseFloatingWatermark="True"
-                                 Watermark="SelectableTextBlock content" />
+                                 UseFloatingPlaceholder="True"
+                                 PlaceholderText="SelectableTextBlock content" />
                     </StackPanel>
                 </suki:GroupBox>
             </suki:GlassCard>
@@ -225,11 +225,13 @@
                         </showMeTheXaml:XamlDisplay>
 
                         <showMeTheXaml:XamlDisplay UniqueId="TextBox2">
-                            <TextBox Text="" Watermark="Watermark" />
+                            <TextBox Text="" suki:TextBoxExtensions.ResetText="" PlaceholderText="PlaceholderText" />
                         </showMeTheXaml:XamlDisplay>
 
                         <showMeTheXaml:XamlDisplay UniqueId="TextBox3">
-                            <TextBox suki:TextBoxExtensions.Prefix="{avalonia:MaterialIconExt Kind=Web}" />
+                            <TextBox suki:TextBoxExtensions.Prefix="{avalonia:MaterialIconExt Kind=Web}"
+                                     suki:TextBoxExtensions.ResetText="google"
+                                     suki:TextBoxExtensions.Unit=".com" />
                         </showMeTheXaml:XamlDisplay>
 
                         <showMeTheXaml:XamlDisplay UniqueId="TextBox4">
@@ -237,7 +239,7 @@
                         </showMeTheXaml:XamlDisplay>
 
                         <showMeTheXaml:XamlDisplay UniqueId="TextBox5">
-                            <TextBox suki:TextBoxExtensions.AddDeleteButton="True" />
+                            <TextBox suki:TextBoxExtensions.ResetText="Reset to default" suki:TextBoxExtensions.AddDeleteButton="True" />
                         </showMeTheXaml:XamlDisplay>
 
                         <showMeTheXaml:XamlDisplay UniqueId="TextBox6">
@@ -246,8 +248,9 @@
                                             HorizontalAlignment="Center">
                                 <StackPanel Spacing="8">
                                     <TextBox Text="Programming"
-                                             UseFloatingWatermark="True"
-                                             Watermark="Hobbies" />
+                                             suki:TextBoxExtensions.ResetText="Programming"
+                                             UseFloatingPlaceholder="True"
+                                             PlaceholderText="Hobbies" />
                                 </StackPanel>
                             </suki:GlassCard>
                         </showMeTheXaml:XamlDisplay>

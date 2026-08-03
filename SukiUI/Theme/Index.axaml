@@ -2,7 +2,6 @@
         xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:animations="clr-namespace:SukiUI.Animations"
-        xmlns:suki="https://github.com/kikipoulet/SukiUI"
         xmlns:system="clr-namespace:System;assembly=netstandard">
 
     <SimpleTheme />
@@ -82,6 +81,8 @@
                 <ResourceInclude Source="avares://sukiUI/Theme/MenuFlyoutPresenter.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Theme/AutoCompleteBoxStyles.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Theme/ManagedFileChooser.axaml" />
+                <ResourceInclude Source="avares://sukiUI/Theme/TextResetButton.axaml" />
+                <ResourceInclude Source="avares://SukiUI/Theme/TreeViewItem.axaml" />
 
                 <ResourceInclude Source="avares://sukiUI/Theme/TimePickerStyle.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Theme/Calendar/Calendar.axaml" />
@@ -103,6 +104,7 @@
                 <ResourceInclude Source="avares://sukiUI/Controls/SukiSideMenuItem.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Controls/SukiTransitioningContentControl.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Controls/Stepper.axaml" />
+                <ResourceInclude Source="avares://sukiUI/Controls/VerticalStepper.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Controls/InfoBadge.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Controls/InfoBar.axaml" />
                 <ResourceInclude Source="avares://sukiUI/Controls/GlassMorphism/GlassCard.axaml" />
@@ -110,7 +112,6 @@
 
                 <ResourceInclude Source="avares://SukiUI/Locale/en-US.axaml" />
             </ResourceDictionary.MergedDictionaries>
-
         </ResourceDictionary>
     </Styles.Resources>
 </Styles>

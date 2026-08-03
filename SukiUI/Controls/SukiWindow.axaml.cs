@@ -1,7 +1,8 @@
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Controls.Chrome;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
@@ -10,6 +11,7 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using SukiUI.Enums;
 using SukiUI.Extensions;
 using System.ComponentModel;
@@ -61,9 +63,14 @@ public class SukiWindow : Window, IDisposable
     #region Members
     private const int DefaultAutoHideDelay = 1000;
     private const int DefaultAutoShowDelay = 300;
+    private static readonly TimeSpan MacTitleBarDoubleClickInterval = TimeSpan.FromMilliseconds(500);
+    private const double MacTitleBarDoubleClickMaxDistance = 4;
 
     private bool _isDisposed;
     private bool _wasTitleBarVisibleBeforeFullScreen = true;
+    private bool _suppressMacTitleBarDoubleTapped;
+    private DateTime _lastMacTitleBarClickTime = DateTime.MinValue;
+    private Point _lastMacTitleBarClickPosition;
 
     private readonly DispatcherTimer _hideTitleBarTimer = new DispatcherTimer()
     {
@@ -355,7 +362,7 @@ public class SukiWindow : Window, IDisposable
 
     // Background properties
     public static readonly StyledProperty<bool> BackgroundAnimationEnabledProperty =
-        SukiMainPanel.BackgroundAnimationEnabledProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundAnimationEnabledProperty.AddOwner<SukiWindow>();
 
     /// <inheritdoc cref="SukiBackground.AnimationEnabled"/>
     public bool BackgroundAnimationEnabled
@@ -365,7 +372,7 @@ public class SukiWindow : Window, IDisposable
     }
 
     public static readonly StyledProperty<SukiBackgroundStyle> BackgroundStyleProperty =
-        SukiMainPanel.BackgroundStyleProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundStyleProperty.AddOwner<SukiWindow>();
 
     /// <inheritdoc cref="SukiBackground.Style"/>
     public SukiBackgroundStyle BackgroundStyle
@@ -375,7 +382,7 @@ public class SukiWindow : Window, IDisposable
     }
 
     public static readonly StyledProperty<string?> BackgroundShaderFileProperty =
-        SukiMainPanel.BackgroundShaderFileProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundShaderFileProperty.AddOwner<SukiWindow>();
 
     /// <inheritdoc cref="SukiBackground.ShaderFile"/>
     public string? BackgroundShaderFile
@@ -385,7 +392,7 @@ public class SukiWindow : Window, IDisposable
     }
 
     public static readonly StyledProperty<string?> BackgroundShaderCodeProperty =
-        SukiMainPanel.BackgroundShaderCodeProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundShaderCodeProperty.AddOwner<SukiWindow>();
 
     /// <inheritdoc cref="SukiBackground.ShaderCode"/>
     public string? BackgroundShaderCode
@@ -395,7 +402,7 @@ public class SukiWindow : Window, IDisposable
     }
 
     public static readonly StyledProperty<bool> BackgroundTransitionsEnabledProperty =
-        SukiMainPanel.BackgroundTransitionsEnabledProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundTransitionsEnabledProperty.AddOwner<SukiWindow>();
 
     /// <inheritdoc cref="SukiBackground.TransitionsEnabled"/>
     public bool BackgroundTransitionsEnabled
@@ -405,7 +412,7 @@ public class SukiWindow : Window, IDisposable
     }
 
     public static readonly StyledProperty<double> BackgroundTransitionTimeProperty =
-        SukiMainPanel.BackgroundTransitionTimeProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundTransitionTimeProperty.AddOwner<SukiWindow>();
 
     /// <inheritdoc cref="SukiBackground.TransitionTime"/>
     public double BackgroundTransitionTime
@@ -415,7 +422,7 @@ public class SukiWindow : Window, IDisposable
     }
 
     public static readonly StyledProperty<bool> BackgroundForceSoftwareRenderingProperty =
-        SukiMainPanel.BackgroundForceSoftwareRenderingProperty.AddOwner<SukiWindow>();
+        SukiMainHost.BackgroundForceSoftwareRenderingProperty.AddOwner<SukiWindow>();
 
     /// <summary>
     /// Forces the background of the window to utilise software rendering.
@@ -425,6 +432,30 @@ public class SukiWindow : Window, IDisposable
     {
         get => GetValue(BackgroundForceSoftwareRenderingProperty);
         set => SetValue(BackgroundForceSoftwareRenderingProperty, value);
+    }
+
+    public static readonly StyledProperty<double> RenderScaleXProperty =
+        SukiMainHost.RenderScaleXProperty.AddOwner<SukiWindow>();
+
+    /// <summary>
+    /// Gets or sets the horizontal scale factor for rendering.
+    /// </summary>
+    public double RenderScaleX
+    {
+        get => GetValue(RenderScaleXProperty);
+        set => SetValue(RenderScaleXProperty, value);
+    }
+
+    public static readonly StyledProperty<double> RenderScaleYProperty =
+        SukiMainHost.RenderScaleYProperty.AddOwner<SukiWindow>();
+
+    /// <summary>
+    /// Gets or sets the vertical scale factor for rendering.
+    /// </summary>
+    public double RenderScaleY
+    {
+        get => GetValue(RenderScaleYProperty);
+        set => SetValue(RenderScaleYProperty, value);
     }
 
     public static readonly StyledProperty<Avalonia.Controls.Controls> RightWindowTitleBarControlsProperty =
@@ -474,19 +505,11 @@ public class SukiWindow : Window, IDisposable
     #region Constructor
     public SukiWindow()
     {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            if (this is { } window)
-            {
-                window.ExtendClientAreaChromeHints = Avalonia.Platform.ExtendClientAreaChromeHints.NoChrome;
-                window.ExtendClientAreaToDecorationsHint = true;
-            }
-        }
-
         Hosts = [];
         RightWindowTitleBarControls = [];
         MenuItems = [];
         ScalingChanged += OnScalingChanged;
+        PositionChanged += OnWindowPositionChanged;
 
         _hideTitleBarTimer.Tick += HideTitleBarTimerOnTick;
         _showTitleBarTimer.Tick += ShowTitleBarTimerOnTick;
@@ -515,15 +538,36 @@ public class SukiWindow : Window, IDisposable
         _titleBarControl = e.NameScope.Find<LayoutTransformControl>("PART_TitleBar");
         if (_titleBarControl is not null)
         {
-            _titleBarControl.PointerPressed += OnTitleBarPointerPressed;
-            _titleBarControl.PointerReleased += OnTitleBarPointerReleased;
-            _titleBarControl.DoubleTapped += OnMaximizeButtonClicked;
-            _disposeActions.Add(() =>
+            var titleBarControl = _titleBarControl;
+            titleBarControl.IsVisible = IsTitleBarVisible;
+
+            if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
-                _titleBarControl.PointerPressed -= OnTitleBarPointerPressed;
-                _titleBarControl.PointerReleased -= OnTitleBarPointerReleased;
-                _titleBarControl.DoubleTapped -= OnMaximizeButtonClicked;
-            });
+                titleBarControl.PointerPressed += OnTitleBarPointerPressed;
+                titleBarControl.PointerReleased += OnTitleBarPointerReleased;
+                titleBarControl.DoubleTapped += OnTitleBarDoubleTapped;
+                _disposeActions.Add(() =>
+                {
+                    titleBarControl.PointerPressed -= OnTitleBarPointerPressed;
+                    titleBarControl.PointerReleased -= OnTitleBarPointerReleased;
+                    titleBarControl.DoubleTapped -= OnTitleBarDoubleTapped;
+                });
+            }
+            else
+            {
+                DisableNativeTitleBarRoleForMac(titleBarControl);
+                titleBarControl.DoubleTapped += OnMacTitleBarDoubleTapped;
+                titleBarControl.AddHandler(
+                    PointerPressedEvent,
+                    OnMacTitleBarPointerPressed,
+                    RoutingStrategies.Tunnel,
+                    handledEventsToo: true);
+                _disposeActions.Add(() =>
+                {
+                    titleBarControl.DoubleTapped -= OnMacTitleBarDoubleTapped;
+                    titleBarControl.RemoveHandler(PointerPressedEvent, OnMacTitleBarPointerPressed);
+                });
+            }
         }
 
         if (e.NameScope.Find<ContentPresenter>("PART_Logo") is { } logo)
@@ -562,7 +606,7 @@ public class SukiWindow : Window, IDisposable
             close.Click += OnCloseButtonClicked;
             _disposeActions.Add(() => close.Click -= OnCloseButtonClicked);
         }
-        /*
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             if (e.NameScope.Find<Panel>("PART_Root") is { } rootPanel)
@@ -574,7 +618,7 @@ public class SukiWindow : Window, IDisposable
                 RootCornerRadius = new CornerRadius(10);
             }
         }
-        */
+
     }
 
     /// <inheritdoc />
@@ -640,8 +684,6 @@ public class SukiWindow : Window, IDisposable
     /// <inheritdoc />
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
-        base.OnPropertyChanged(change);
-
         if (change.Property == MaxWidthScreenRatioProperty)
         {
             this.ConstrainMaxSizeToScreenRatio(MaxWidthScreenRatio, double.NaN);
@@ -652,61 +694,63 @@ public class SukiWindow : Window, IDisposable
         }
         else if (change.Property == WindowStateProperty)
         {
-            if (change.OldValue is not WindowState oldWindowState
-            || change.NewValue is not WindowState newWindowState) return;
-
-            OnWindowStateChanged(oldWindowState, newWindowState);
+            if (change.OldValue is WindowState oldWindowState
+                && change.NewValue is WindowState newWindowState)
+            {
+                OnWindowStateChanged(oldWindowState, newWindowState);
+            }
         }
         else if (change.Property == IsTitleBarVisibleProperty)
         {
-            if (_titleBarControl is null || _isDisposed) return;
-            var isTitleBarVisible = change.GetNewValue<bool>();
-
-            if (TitleBarAnimationEnabled)
+            if (_titleBarControl is not null && !_isDisposed)
             {
-                TryGetResource("MediumAnimationDuration", ActualThemeVariant, out var result);
+                var isTitleBarVisible = change.GetNewValue<bool>();
 
-                var duration = result is TimeSpan ts ? ts : TimeSpan.FromMilliseconds(350);
-
-                if (isTitleBarVisible)
+                if (TitleBarAnimationEnabled)
                 {
-                    _titleBarControl.Animate(ScaleTransform.ScaleYProperty, 0d, 1d, duration);
-                    _titleBarControl.IsVisible = true;
+                    TryGetResource("MediumAnimationDuration", ActualThemeVariant, out var result);
+
+                    var duration = result is TimeSpan ts ? ts : TimeSpan.FromMilliseconds(350);
+
+                    if (isTitleBarVisible)
+                    {
+                        _titleBarControl.Animate(ScaleTransform.ScaleYProperty, 0d, 1d, duration);
+                        _titleBarControl.IsVisible = true;
+                    }
+                    else
+                    {
+                        _titleBarControl.AnimateAsync(ScaleTransform.ScaleYProperty, 1d, 0d, duration)
+                            .ContinueWith(task =>
+                            {
+                                Dispatcher.UIThread.Post(() => { _titleBarControl.IsVisible = false; });
+                            });
+                    }
                 }
                 else
                 {
-                    _titleBarControl.AnimateAsync(ScaleTransform.ScaleYProperty, 1d, 0d, duration).ContinueWith(task =>
-                    {
-                        Dispatcher.UIThread.Post(() =>
-                        {
-                            _titleBarControl.IsVisible = false;
-                        });
-                    });
+                    _titleBarControl.IsVisible = isTitleBarVisible;
                 }
-            }
-            else
-            {
-                _titleBarControl.IsVisible = isTitleBarVisible;
             }
         }
         else if (change.Property == TitleBarVisibilityOnFullScreenProperty)
         {
             if (WindowState == WindowState.FullScreen)
             {
-                if (change.NewValue is not TitleBarVisibilityMode mode) return;
-
-                IsTitleBarVisible = mode switch
+                if (change.NewValue is TitleBarVisibilityMode mode)
                 {
-                    TitleBarVisibilityMode.Unchanged => _wasTitleBarVisibleBeforeFullScreen,
-                    TitleBarVisibilityMode.Visible => true,
-                    TitleBarVisibilityMode.Hidden or TitleBarVisibilityMode.AutoHidden => false,
-                    _ => IsTitleBarVisible
-                };
+                    IsTitleBarVisible = mode switch
+                    {
+                        TitleBarVisibilityMode.Unchanged => _wasTitleBarVisibleBeforeFullScreen,
+                        TitleBarVisibilityMode.Visible => true,
+                        TitleBarVisibilityMode.Hidden or TitleBarVisibilityMode.AutoHidden => false,
+                        _ => IsTitleBarVisible
+                    };
 
-                PointerMoved -= AutoHideTitleBarOnPointerMoved;
-                if (mode == TitleBarVisibilityMode.AutoHidden)
-                {
-                    PointerMoved += AutoHideTitleBarOnPointerMoved;
+                    PointerMoved -= AutoHideTitleBarOnPointerMoved;
+                    if (mode == TitleBarVisibilityMode.AutoHidden)
+                    {
+                        PointerMoved += AutoHideTitleBarOnPointerMoved;
+                    }
                 }
             }
         }
@@ -718,6 +762,8 @@ public class SukiWindow : Window, IDisposable
         {
             _showTitleBarTimer.Interval = TimeSpan.FromMilliseconds(TitleBarAutoShowDelay);
         }
+
+        base.OnPropertyChanged(change);
     }
     #endregion
 
@@ -729,6 +775,11 @@ public class SukiWindow : Window, IDisposable
     /// <param name="sender"></param>
     /// <param name="e"></param>
     private void OnScalingChanged(object sender, EventArgs e)
+    {
+        this.ConstrainMaxSizeToScreenRatio(MaxWidthScreenRatio, MaxHeightScreenRatio);
+    }
+
+    private void OnWindowPositionChanged(object? sender, PixelPointEventArgs e)
     {
         this.ConstrainMaxSizeToScreenRatio(MaxWidthScreenRatio, MaxHeightScreenRatio);
     }
@@ -774,13 +825,6 @@ public class SukiWindow : Window, IDisposable
             {
                 IsTitleBarVisible = _wasTitleBarVisibleBeforeFullScreen;
             }
-        }
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) // only for windows platform
-        {
-            Margin = new Thickness(newState == WindowState.Maximized
-                ? 7
-                : 0);
         }
 
         this.ConstrainMaxSizeToScreenRatio(MaxWidthScreenRatio, MaxHeightScreenRatio);
@@ -836,11 +880,99 @@ public class SukiWindow : Window, IDisposable
     /// <param name="args"></param>
     private void OnMaximizeButtonClicked(object? sender, RoutedEventArgs args)
     {
+        ToggleMaximizeOrZoom();
+    }
+
+    private void OnMacTitleBarDoubleTapped(object? sender, RoutedEventArgs args)
+    {
+        if (IsFromTitleBarUserElement(args.Source))
+        {
+            return;
+        }
+
+        if (_suppressMacTitleBarDoubleTapped)
+        {
+            _suppressMacTitleBarDoubleTapped = false;
+            return;
+        }
+
+        ToggleMaximizeOrZoom();
+    }
+
+    private void ToggleMaximizeOrZoom()
+    {
         var windowState = WindowState;
         if (!CanMaximize || windowState == WindowState.FullScreen) return;
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
+            MacWindowNativeActions.TryToggleZoom(this, windowState == WindowState.Maximized))
+        {
+            return;
+        }
+
         WindowState = windowState == WindowState.Maximized
             ? WindowState.Normal
             : WindowState.Maximized;
+    }
+
+    private void OnMacTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (!RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
+            !e.Properties.IsLeftButtonPressed ||
+            IsFromTitleBarUserElement(e.Source))
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var position = e.GetPosition(this);
+        var deltaX = position.X - _lastMacTitleBarClickPosition.X;
+        var deltaY = position.Y - _lastMacTitleBarClickPosition.Y;
+        var clickDistanceSquared = deltaX * deltaX + deltaY * deltaY;
+        if (now - _lastMacTitleBarClickTime <= MacTitleBarDoubleClickInterval &&
+            clickDistanceSquared <= MacTitleBarDoubleClickMaxDistance * MacTitleBarDoubleClickMaxDistance)
+        {
+            _lastMacTitleBarClickTime = DateTime.MinValue;
+            _suppressMacTitleBarDoubleTapped = true;
+            e.Handled = true;
+            e.PreventGestureRecognition();
+            ToggleMaximizeOrZoom();
+            return;
+        }
+
+        _lastMacTitleBarClickTime = now;
+        _lastMacTitleBarClickPosition = position;
+        OnTitleBarPointerPressed(sender, e);
+    }
+
+    private bool IsFromTitleBarUserElement(object? source)
+    {
+        for (var visual = source as Visual; visual is not null && visual != _titleBarControl; visual = visual.GetVisualParent())
+        {
+            if (WindowDecorationProperties.GetElementRole(visual) == WindowDecorationsElementRole.User)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static void DisableNativeTitleBarRoleForMac(Visual titleBar)
+    {
+        ClearTitleBarRole(titleBar);
+        foreach (var visual in titleBar.GetVisualDescendants())
+        {
+            ClearTitleBarRole(visual);
+        }
+
+        static void ClearTitleBarRole(Visual visual)
+        {
+            if (WindowDecorationProperties.GetElementRole(visual) == WindowDecorationsElementRole.TitleBar)
+            {
+                WindowDecorationProperties.SetElementRole(visual, WindowDecorationsElementRole.None);
+            }
+        }
     }
 
     /// <summary>
@@ -883,28 +1015,39 @@ public class SukiWindow : Window, IDisposable
     /// <summary>
     /// Occurs when the title bar is clicked.
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (!CanMove || WindowState == WindowState.FullScreen)
+        if (!CanMove ||
+            WindowState == WindowState.FullScreen ||
+            !e.Properties.IsLeftButtonPressed ||
+            IsFromTitleBarUserElement(e.Source))
+        {
             return;
+        }
+
         BeginMoveDrag(e);
     }
 
+    private void OnTitleBarDoubleTapped(object? sender, RoutedEventArgs args)
+    {
+        if (IsFromTitleBarUserElement(args.Source))
+        {
+            return;
+        }
+
+        ToggleMaximizeOrZoom();
+    }
+
     /// <summary>
-    /// Occurs when the title bar is released
+    /// Occurs when the title bar is released.
     /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
     private void OnTitleBarPointerReleased(object sender, PointerReleasedEventArgs e)
     {
-        // Ensure correct window max size if dropped on other screen/resolution while using max size ratio
-        if (!CanMove || e.InitialPressMouseButton != MouseButton.Left) return;
+        // Ensure correct window max size if dropped on other screen/resolution while using max size ratio.
+        if (!CanMove || e.InitialPressMouseButton != MouseButton.Left || IsFromTitleBarUserElement(e.Source)) return;
         this.ConstrainMaxSizeToScreenRatio(MaxWidthScreenRatio, MaxHeightScreenRatio);
     }
 
-    /*
     /// <summary>
     /// Occurs when the resize grip is clicked.
     /// </summary>
@@ -915,8 +1058,6 @@ public class SukiWindow : Window, IDisposable
     {
         if (!CanResize || WindowState != WindowState.Normal) return;
         if (sender is not Border border || border.Tag is not string edge) return;
-        if (VisualRoot is not Window window)
-            return;
 
         var windowEdge = edge switch
         {
@@ -931,10 +1072,17 @@ public class SukiWindow : Window, IDisposable
             _ => throw new ArgumentOutOfRangeException()
         };
 
-        window.BeginResizeDrag(windowEdge, e);
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            var isWayland = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("WAYLAND_DISPLAY"));
+            if (isWayland && WindowDecorations == WindowDecorations.None)
+                WindowDecorations = WindowDecorations.BorderOnly;
+        }
+
+        // this statt VisualRoot verwenden — SukiWindow ist selbst das Window
+        BeginResizeDrag(windowEdge, e);
         e.Handled = true;
     }
-    */
 
     private void HideTitleBarTimerOnTick(object sender, EventArgs e)
     {
@@ -988,8 +1136,8 @@ public class SukiWindow : Window, IDisposable
                                                            ? new Point(buttonSize.Width, 0)
                                                            : new Point(0, 0));
 
-                var x = (buttonLeftTop.X - point.X) / RenderScaling;
-                var y = (point.Y - buttonLeftTop.Y) / RenderScaling;
+                var x = (buttonLeftTop.X - point.X) / this.GetRenderScaling();
+                var y = (point.Y - buttonLeftTop.Y) / this.GetRenderScaling();
 
                 if (new Rect(default, buttonSize).Contains(new Point(x, y)))
                 {
@@ -1025,7 +1173,6 @@ public class SukiWindow : Window, IDisposable
         _disposeActions.Add(() => Win32Properties.RemoveWndProcHookCallback(this, wndProcHookCallback));
     }
 
-    /*
     /// <summary>
     /// Adds resize grips to the window for Linux system.
     /// </summary>
@@ -1126,13 +1273,18 @@ public class SukiWindow : Window, IDisposable
             rootPanel.Children.Add(border);
         }
     }
-    */
 
     /// <summary>
     /// Toggles the full screen mode.
     /// </summary>
     public void ToggleFullScreen()
     {
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) &&
+            MacWindowNativeActions.TryToggleFullScreen(this))
+        {
+            return;
+        }
+
         WindowState = WindowState == WindowState.FullScreen
             ? PreviousVisibleWindowState
             : WindowState.FullScreen;
