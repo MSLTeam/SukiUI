@@ -27,6 +27,7 @@
             </suki:GlassCard>
         </suki:SukiWindow>
     </Design.PreviewWith>
+
     <ControlTheme x:Key="SukiWindowTheme" TargetType="suki:SukiWindow">
         <Setter Property="Margin" Value="0" />
         <Setter Property="TransparencyLevelHint" Value="Transparent" />
@@ -123,28 +124,41 @@
                                                         <PathIcon x:Name="PinIcon"
                                                                   Data="{x:Static icons:Icons.WindowPin}" />
                                                     </Button>
-                                                    <Button Name="PART_MinimizeButton"
-                                                            VerticalContentAlignment="Bottom"
-                                                            Classes="WindowControlsButton"
-                                                            chrome:WindowDecorationProperties.ElementRole="User"
-                                                            IsVisible="{TemplateBinding CanMinimize}">
-                                                        <PathIcon Margin="0,0,0,6.5"
-                                                                  VerticalAlignment="Bottom"
-                                                                  Data="{x:Static icons:Icons.WindowMinimize}" />
-                                                    </Button>
-                                                    <Button Name="PART_MaximizeButton"
-                                                            Classes="WindowControlsButton"
-                                                            chrome:WindowDecorationProperties.ElementRole="User"
-                                                            IsVisible="{TemplateBinding CanMaximize}">
-                                                        <PathIcon x:Name="MaximizeIcon"
-                                                                  Data="{x:Static icons:Icons.WindowMaximize}" />
-                                                    </Button>
-                                                    <Button Name="PART_CloseButton"
-                                                            Classes="WindowControlsButton Close"
-                                                            chrome:WindowDecorationProperties.ElementRole="User">
-                                                        <PathIcon Data="{x:Static icons:Icons.WindowClose}" />
-                                                    </Button>
+                                                    <StackPanel Name="PART_WinButtonsStack"
+                                                                Orientation="Horizontal"
+                                                                Spacing="7"
+                                                                VerticalAlignment="Center">
+                                                        <Button Name="PART_MinimizeButton"
+                                                                VerticalContentAlignment="Bottom"
+                                                                Classes="WindowControlsButton"
+                                                                chrome:WindowDecorationProperties.ElementRole="User"
+                                                                IsVisible="{TemplateBinding CanMinimize}">
+                                                            <PathIcon Margin="0,0,0,6.5"
+                                                                      VerticalAlignment="Bottom"
+                                                                      Data="{x:Static icons:Icons.WindowMinimize}" />
+                                                        </Button>
+                                                        <Button Name="PART_MaximizeButton"
+                                                                Classes="WindowControlsButton"
+                                                                chrome:WindowDecorationProperties.ElementRole="User"
+                                                                IsVisible="{TemplateBinding CanMaximize}">
+                                                            <PathIcon x:Name="MaximizeIcon"
+                                                                      Data="{x:Static icons:Icons.WindowMaximize}" />
+                                                        </Button>
+                                                        <Button Name="PART_CloseButton"
+                                                                Classes="WindowControlsButton Close"
+                                                                chrome:WindowDecorationProperties.ElementRole="User">
+                                                            <PathIcon Data="{x:Static icons:Icons.WindowClose}" />
+                                                        </Button>
+                                                    </StackPanel>
                                                 </StackPanel>
+
+                                                <StackPanel Name="PART_MacButtonsStack"
+                                                            DockPanel.Dock="Left"
+                                                            Orientation="Horizontal"
+                                                            Spacing="8"
+                                                            Margin="2,0,10,0"
+                                                            VerticalAlignment="Center"
+                                                            IsVisible="False" />
 
                                                 <Grid ColumnDefinitions="Auto,*"
                                                       Background="Transparent"

@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -607,6 +607,64 @@ public class SukiWindow : Window, IDisposable
             _disposeActions.Add(() => close.Click -= OnCloseButtonClicked);
         }
 
+        var macButtonsStack = e.NameScope.Find<StackPanel>("PART_MacButtonsStack");
+        var winButtonsStack = e.NameScope.Find<StackPanel>("PART_WinButtonsStack");
+        var closeButton = e.NameScope.Find<Button>("PART_CloseButton");
+        var minimizeButton = e.NameScope.Find<Button>("PART_MinimizeButton");
+        var maximizeButton = e.NameScope.Find<Button>("PART_MaximizeButton");
+
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+        {
+            if (macButtonsStack != null) macButtonsStack.IsVisible = true;
+            if (winButtonsStack != null) winButtonsStack.IsVisible = false;
+
+            if (macButtonsStack != null && winButtonsStack != null &&
+                closeButton != null && minimizeButton != null && maximizeButton != null)
+            {
+                winButtonsStack.Children.Remove(closeButton);
+                winButtonsStack.Children.Remove(minimizeButton);
+                winButtonsStack.Children.Remove(maximizeButton);
+
+                macButtonsStack.Children.Clear();
+                macButtonsStack.Children.Add(closeButton);
+                macButtonsStack.Children.Add(minimizeButton);
+                macButtonsStack.Children.Add(maximizeButton);
+
+                closeButton.Classes.Clear();
+                closeButton.Classes.Add("MacTrafficLight");
+                closeButton.Classes.Add("MacClose");
+                closeButton.Content = CreateMacTrafficIcon("M 0.8,0 L 3,2.2 L 5.2,0 L 6,0.8 L 3.8,3 L 6,5.2 L 5.2,6 L 3,3.8 L 0.8,6 L 0,5.2 L 2.2,3 L 0,0.8 Z", "#4C0000");
+
+                minimizeButton.Classes.Clear();
+                minimizeButton.Classes.Add("MacTrafficLight");
+                minimizeButton.Classes.Add("MacMinimize");
+                minimizeButton.Content = CreateMacTrafficIcon("M 0,2.2 L 6,2.2 L 6,3.8 L 0,3.8 Z", "#5C3C00");
+
+                maximizeButton.Classes.Clear();
+                maximizeButton.Classes.Add("MacTrafficLight");
+                maximizeButton.Classes.Add("MacMaximize");
+                maximizeButton.Content = CreateMacTrafficIcon("M 0,0 L 4.2,0 L 0,4.2 Z M 6,6 L 1.8,6 L 6,1.8 Z", "#003D09");
+
+                macButtonsStack.PointerEntered += (_, _) =>
+                {
+                    closeButton.Classes.Add("HoverGroup");
+                    minimizeButton.Classes.Add("HoverGroup");
+                    maximizeButton.Classes.Add("HoverGroup");
+                };
+                macButtonsStack.PointerExited += (_, _) =>
+                {
+                    closeButton.Classes.Remove("HoverGroup");
+                    minimizeButton.Classes.Remove("HoverGroup");
+                    maximizeButton.Classes.Remove("HoverGroup");
+                };
+            }
+        }
+        else
+        {
+            if (macButtonsStack != null) macButtonsStack.IsVisible = false;
+            if (winButtonsStack != null) winButtonsStack.IsVisible = true;
+        }
+
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             if (e.NameScope.Find<Panel>("PART_Root") is { } rootPanel)
@@ -619,6 +677,20 @@ public class SukiWindow : Window, IDisposable
             }
         }
 
+    }
+
+    private static PathIcon CreateMacTrafficIcon(string pathData, string colorHex)
+    {
+        return new PathIcon
+        {
+            Data = Geometry.Parse(pathData),
+            Width = 6,
+            Height = 6,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Foreground = Brush.Parse(colorHex),
+            Classes = { "MacTrafficIcon" }
+        };
     }
 
     /// <inheritdoc />

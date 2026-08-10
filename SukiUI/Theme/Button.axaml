@@ -583,6 +583,101 @@
             </Style>
         </Style>
 
+        <Style Selector="^.MacTrafficLight">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="CornerRadius" Value="6.5" />
+            <Setter Property="Height" Value="13" />
+            <Setter Property="Width" Value="13" />
+            <Setter Property="MinWidth" Value="13" />
+            <Setter Property="MinHeight" Value="13" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Transitions">
+                <Transitions>
+                    <BrushTransition Property="Background" Duration="0:0:0.1" />
+                </Transitions>
+            </Setter>
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <Border Name="MacButtonBorder"
+                            Width="{TemplateBinding Width}"
+                            Height="{TemplateBinding Height}"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            CornerRadius="{TemplateBinding CornerRadius}">
+                        <ContentPresenter Name="PART_ContentPresenter"
+                                          HorizontalContentAlignment="Center"
+                                          VerticalContentAlignment="Center"
+                                          Opacity="0"
+                                          Content="{TemplateBinding Content}">
+                            <ContentPresenter.Transitions>
+                                <Transitions>
+                                    <DoubleTransition Property="Opacity" Duration="0:0:0.15" />
+                                </Transitions>
+                            </ContentPresenter.Transitions>
+                        </ContentPresenter>
+                    </Border>
+                </ControlTemplate>
+            </Setter>
+
+            <!-- Override base SukiButtonStyle hover border -->
+            <Style Selector="^:pointerover /template/ Border">
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+            <Style Selector="^:pressed /template/ Border">
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="0" />
+            </Style>
+
+            <!-- Show icon on group or button hover -->
+            <Style Selector="^.HoverGroup /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Opacity" Value="0.85" />
+            </Style>
+            <Style Selector="^:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Opacity" Value="1.0" />
+            </Style>
+
+            <Style Selector="^.MacClose">
+                <Setter Property="Background" Value="#FF5F56" />
+                <Style Selector="^:pointerover, ^:flyout-open">
+                    <Setter Property="Background" Value="#FF5F56" />
+                </Style>
+                <Style Selector="^:pressed:pointerover">
+                    <Setter Property="Background" Value="#E0443E" />
+                </Style>
+            </Style>
+
+            <Style Selector="^.MacMinimize">
+                <Setter Property="Background" Value="#FFBD2E" />
+                <Style Selector="^:pointerover, ^:flyout-open">
+                    <Setter Property="Background" Value="#FFBD2E" />
+                </Style>
+                <Style Selector="^:pressed:pointerover">
+                    <Setter Property="Background" Value="#DEA123" />
+                </Style>
+            </Style>
+
+            <Style Selector="^.MacMaximize">
+                <Setter Property="Background" Value="#27C93F" />
+                <Style Selector="^:pointerover, ^:flyout-open">
+                    <Setter Property="Background" Value="#27C93F" />
+                </Style>
+                <Style Selector="^:pressed:pointerover">
+                    <Setter Property="Background" Value="#1AAB29" />
+                </Style>
+            </Style>
+
+            <Style Selector="^:disabled">
+                <Setter Property="Background" Value="#4A4A4A" />
+                <Setter Property="Opacity" Value="0.4" />
+            </Style>
+        </Style>
+
         <Style Selector="^.Card">
             <Setter Property="Padding" Value="20" />
             <Setter Property="CornerRadius" Value="{DynamicResource MediumCornerRadius}" />
