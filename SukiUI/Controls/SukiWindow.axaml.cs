@@ -615,48 +615,12 @@ public class SukiWindow : Window, IDisposable
 
         if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
         {
-            if (macButtonsStack != null) macButtonsStack.IsVisible = true;
             if (winButtonsStack != null) winButtonsStack.IsVisible = false;
-
-            if (macButtonsStack != null && winButtonsStack != null &&
-                closeButton != null && minimizeButton != null && maximizeButton != null)
+            if (macButtonsStack != null)
             {
-                winButtonsStack.Children.Remove(closeButton);
-                winButtonsStack.Children.Remove(minimizeButton);
-                winButtonsStack.Children.Remove(maximizeButton);
-
+                macButtonsStack.IsVisible = true;
+                macButtonsStack.Width = 70;
                 macButtonsStack.Children.Clear();
-                macButtonsStack.Children.Add(closeButton);
-                macButtonsStack.Children.Add(minimizeButton);
-                macButtonsStack.Children.Add(maximizeButton);
-
-                closeButton.Classes.Clear();
-                closeButton.Classes.Add("MacTrafficLight");
-                closeButton.Classes.Add("MacClose");
-                closeButton.Content = CreateMacTrafficIcon("M 0.8,0 L 3,2.2 L 5.2,0 L 6,0.8 L 3.8,3 L 6,5.2 L 5.2,6 L 3,3.8 L 0.8,6 L 0,5.2 L 2.2,3 L 0,0.8 Z", "#4C0000");
-
-                minimizeButton.Classes.Clear();
-                minimizeButton.Classes.Add("MacTrafficLight");
-                minimizeButton.Classes.Add("MacMinimize");
-                minimizeButton.Content = CreateMacTrafficIcon("M 0,2.2 L 6,2.2 L 6,3.8 L 0,3.8 Z", "#5C3C00");
-
-                maximizeButton.Classes.Clear();
-                maximizeButton.Classes.Add("MacTrafficLight");
-                maximizeButton.Classes.Add("MacMaximize");
-                maximizeButton.Content = CreateMacTrafficIcon("M 0,0 L 4.2,0 L 0,4.2 Z M 6,6 L 1.8,6 L 6,1.8 Z", "#003D09");
-
-                macButtonsStack.PointerEntered += (_, _) =>
-                {
-                    closeButton.Classes.Add("HoverGroup");
-                    minimizeButton.Classes.Add("HoverGroup");
-                    maximizeButton.Classes.Add("HoverGroup");
-                };
-                macButtonsStack.PointerExited += (_, _) =>
-                {
-                    closeButton.Classes.Remove("HoverGroup");
-                    minimizeButton.Classes.Remove("HoverGroup");
-                    maximizeButton.Classes.Remove("HoverGroup");
-                };
             }
         }
         else

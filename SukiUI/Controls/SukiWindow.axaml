@@ -32,7 +32,7 @@
         <Setter Property="Margin" Value="0" />
         <Setter Property="TransparencyLevelHint" Value="Transparent" />
         <Setter Property="WindowDecorations"
-                Value="{OnPlatform BorderOnly, Windows=Full, Linux=None, x:TypeArguments=WindowDecorations}" />
+                Value="{OnPlatform Full, Windows=Full, Linux=None, x:TypeArguments=WindowDecorations}" />
         <Setter Property="ExtendClientAreaToDecorationsHint" Value="True" />
         <Setter Property="ExtendClientAreaTitleBarHeightHint" Value="-1" />
         <Setter Property="Foreground" Value="{DynamicResource SukiText}" />
@@ -161,9 +161,11 @@
                                                             IsVisible="False" />
 
                                                 <Grid ColumnDefinitions="Auto,*"
+                                                      Name="PART_TitleLeftGrid"
                                                       Background="Transparent"
                                                       ColumnSpacing="10"
                                                       VerticalAlignment="Center"
+                                                      Margin="{OnPlatform '0,0,0,0', macOS='0,-6,0,0'}"
                                                       chrome:WindowDecorationProperties.ElementRole="TitleBar">
                                                     <ContentPresenter Grid.Column="0"
                                                                       Name="PART_Logo"
